@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
 import sys
+
+if sys.version_info < (3, 0):
+    sys.stdout.write("Please use Python 3 to run this script\n")
+    sys.exit(1)
+
 import io
 import binascii
 from lib.chunks import *

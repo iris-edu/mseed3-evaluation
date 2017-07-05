@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
 import sys
+
+if sys.version_info < (3, 0):
+    sys.stdout.write("Please use Python 3 to run this script\n")
+    sys.exit(1)
+
 from lib.chunktype import decode_chunk, UnsupportedChunk
 from lib.chunks import *
 
