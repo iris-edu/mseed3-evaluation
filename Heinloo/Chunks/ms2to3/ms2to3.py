@@ -34,7 +34,7 @@ class MS3Writer(object):
         self.__data += chunk._encode()
 
     def flush(self):
-	"""Finish and write a record"""
+        """Finish and write a record"""
 
         chunk = CRC32(
             value = binascii.crc32(self.__data)
