@@ -24,7 +24,7 @@ while True:
         break
 
     if sig != b'MS30':
-        print('not an MS30 file')
+        print("invalid MS30 record")
         sys.exit(1)
 
     while True:
@@ -33,7 +33,12 @@ while True:
 
             print(chunk)
 
-            if type(chunk) == NULL_CHUNK:
+            # Essential chunks (ID, TIME) should be near the beginning of
+            # record. In addition to that we should know the record length,
+            # which would enable us to jump to next record without parsing all
+            # chunks.
+
+            if type(chunk) == NULL_CHUNK:  # end of record
                 break
 
         except UnsupportedChunk as e:

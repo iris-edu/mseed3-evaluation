@@ -34,12 +34,18 @@ class MS3Writer(object):
         self.__data += chunk._encode()
 
     def flush(self):
+	"""Finish and write a record"""
+
         chunk = CRC32(
             value = binascii.crc32(self.__data)
         )
         self.__data += chunk._encode()
+
+        # add NULL chunk to mark the end of record
         self.__data += b'\0\0'
         self.__stream.write(self.__data)
+
+        # next record starts here
         self.__data = b"MS30"
 
 def process_ms2_record(rec):
@@ -121,6 +127,7 @@ def process_ms2_record(rec):
         )
         writer.add_chunk(chunk)
 
+    # Finish the MS3 record
     writer.flush()
 
 
