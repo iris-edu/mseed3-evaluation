@@ -119,3 +119,4 @@ while True:
         break
 
     print("type = %d (%s), data = %s" % (key, chunk_types[key][0], chunk_types[key][1](data)))
+
