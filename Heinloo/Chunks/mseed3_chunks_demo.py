@@ -26,6 +26,12 @@
 #
 # Varint implementation is based on https://github.com/fmoo/python-varint/
 
+import sys
+
+if sys.version_info < (3, 0):
+    sys.stdout.write("Please use Python 3 to run this script\n")
+    sys.exit(1)
+
 import io
 
 def encode_varint(number):
@@ -119,3 +125,4 @@ while True:
         break
 
     print("type = %d (%s), data = %s" % (key, chunk_types[key][0], chunk_types[key][1](data)))
+
