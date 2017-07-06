@@ -3,7 +3,7 @@
   "EventInProgress": [
     { "Begin": true,
       "End": true,
-      "SNR": [ .2, .5, 1.8 ]
+      "SNR": [ 0.2, 0.5, 1.8 ]
     }
   ],
   "TimeException": [
