@@ -1,0 +1,24 @@
+{
+  "TQ": 92,
+  "EventInProgress": [
+    { "Begin": true,
+      "End": true,
+      "SNR": [ .2, .5, 1.8 ]
+    }
+  ],
+  "TimeException": [
+    { "TimeException": "20160304T123456.2Z",
+      "ExceptionCount": 2,
+      "ExceptionType": "Bad Stuff"
+    },
+    { "TimeException": "20160304T123457.1Z",
+      "ExceptionCount": 3,
+      "ExceptionType": "More Bad Stuff"
+    }
+  ],
+  "someOtherHeader": {
+    "aValue": 42,
+    "myItems": [ "towel" ],
+    "thePhrase": "Don't Panic"
+  }
+} 

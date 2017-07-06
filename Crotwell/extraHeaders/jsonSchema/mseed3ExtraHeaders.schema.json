@@ -1,0 +1,124 @@
+{ 
+  "$schema": "http://json-schema.org/schema#",
+  "id": "http://fdsn.org/schemas/mseed3extras.json",
+
+  "definitions": {
+    "Equipment": {
+      "type": "object",
+      "properties": {
+        "Model": { "type": "string" },
+        "Serial": { "type": "string" }
+      }
+    },
+    "EventInProgress": {
+        "type": "object",
+        "properties": {
+            "Begin": { "type": "boolean" },
+            "End": { "type": "boolean" },
+            "SignalAmplitude": { "type": "number" },
+            "SignalPeriod": { "type": "number" },
+            "BackgroundEstimate": { "type": "number" },
+            "DetectionWave": { "type": "string" },
+            "OnsetTime": { "type": "string",
+                "pattern": "^[0-9]{8}T[0-9]{6}(\\.[0-9]*)Z"
+            },
+            "SNR": { "type": "array", "items": { "type": "number" } },
+            "MEDLookback": { "type": "number" },
+            "MEDPickAlgorithm": { "type": "number" },
+            "Detector": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "TimeException": { 
+          "type": "object",
+          "properties": {
+              "VCOCorrection": { "type": "number" },
+              "TimeException": { "type": "string",
+                "pattern": "^[0-9]{8}T[0-9]{6}(\\.[0-9]*)Z"
+              },
+              "ReceptionQuality": { "type": "number" },
+              "ExceptionCount": { "type": "number" },
+              "ExceptionType": { "type": "string" }
+          },
+          "additionalProperties": false
+      }
+  },
+
+  "type": "object",
+  "properties": {
+        "TQ": { "type": "number" },
+        "MTE": { "type": "number" },
+        "TimeCorrection": { "type": "number" },
+        "TimeLeapSecond": { "type": "number" },
+        "TimeException": { "type": "array", "items": { "$ref": "#/definitions/TimeException" } },
+        "EventInProgress": { "type": "array", "items": { "$ref": "#/definitions/EventInProgress" } },
+        "Calibration": {
+            "type": "object",
+            "properties": {
+                "BeginTime": { "type": "string",
+                  "pattern": "^[0-9]{8}T[0-9]{6}(\\.[0-9]*)Z"
+                },
+                "EndTime": { "type": "string",
+                  "pattern": "^[0-9]{8}T[0-9]{6}(\\.[0-9]*)Z"
+                },
+                "Steps": { "type": "number" },
+                "FirstPulsePositive": { "type": "boolean" },
+                "AlternateSign": { "type": "boolean" },
+                "Trigger": { "type": "string" },
+                "Continued": { "type": "boolean" },
+                "Amplitude": { "type": "number" },
+                "InputUnits": { "type": "string" },
+                "AmplitudeRange": { "type": "string" },
+                "Duration": { "type": "number" },
+                "SinePeriod": { "type": "number" },
+                "StepBetween": { "type": "number" },
+                "InputChannel": { "type": "string" },
+                "RefAmplitude": { "type": "number" },
+                "Coupling": { "type": "string" },
+                "Rolloff": { "type": "string" },
+                "Noise": { "type": "string" }
+            },
+            "additionalProperties": false
+        },
+        "SignalQuality": {
+            "type": "object",
+            "properties": {
+                "QI": { "type": "string" },
+                "MassPositionOffScale": { "type": "boolean" },
+                "AmplifierSaturation": { "type": "boolean" },
+                "DigitizerClipping": { "type": "boolean" },
+                "Spikes": { "type": "boolean" },
+                "Glitches": { "type": "boolean" },
+                "FilterCharging": { "type": "boolean" }
+            },
+            "additionalProperties": false
+        },
+        "Beam": {
+            "type": "object",
+            "properties": {
+                "Azimuth": { "type": "number" },
+                "Slowness": { "type": "number" },
+                "Configuration": { "type": "string" },
+                "DelayValues": { "type": "array", "items": { "type": "number" } }
+            },
+            "additionalProperties": false
+        },
+        "RecordFlags": {
+            "type": "object",
+            "properties": {
+                "StationVolumeParityError": { "type": "boolean" },
+                "LongRecordRead": { "type": "boolean" },
+                "ShortRecordRead": { "type": "boolean" },
+                "StartOfTimeSeries": { "type": "boolean" },
+                "EndOfTimeSeries": { "type": "boolean" },
+                "TelemetrySyncError": { "type": "boolean" },
+                "MissingData": { "type": "boolean" }
+            },
+            "additionalProperties": false
+        },
+        "Logger": { "$ref": "#/definitions/Equipment" },
+        "Sensor": { "$ref": "#/definitions/Equipment" },
+        "Clock": { "$ref": "#/definitions/Equipment" }
+  },
+  "additionalProperties": true
+}
