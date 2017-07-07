@@ -20,5 +20,6 @@
     "aValue": 42,
     "myItems": [ "towel" ],
     "thePhrase": "Don't Panic"
-  }
+  },
+  "yetAnother": "dummy"
 } 

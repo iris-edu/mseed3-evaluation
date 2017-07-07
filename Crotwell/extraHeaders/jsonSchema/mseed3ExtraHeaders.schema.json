@@ -120,5 +120,9 @@
         "Sensor": { "$ref": "#/definitions/Equipment" },
         "Clock": { "$ref": "#/definitions/Equipment" }
   },
-  "additionalProperties": true
+  "patternProperties": {
+        "^[a-z]": {}
+  },
+  "additionalProperties": false
+
 }
