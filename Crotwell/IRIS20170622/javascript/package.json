@@ -1,5 +1,5 @@
 {
-  "name": "mseed3-iris0623",
+  "name": "mseed3-iris0622",
   "version": "0.0.1",
   "description": "Javascript library for parsing new miniseed3 proposed format.",
   "main": "./lib/mseed3.js",
@@ -11,7 +11,7 @@
     "lint": "eslint 'src/*.js'",
     "test": "qunit -c ./lib/mseed3.js -t ./test/index.js",
     "compile": "babel --presets es2015 -d lib/ src/",
-    "standalone": "browserify src/mseed3.js --standalone mseed3_iris0623 -o mseed3_${npm_package_version}_standalone.js -t [ babelify --presets [ es2015 ] ]",
+    "standalone": "browserify src/mseed3.js --standalone mseed3_iris0622 -o mseed3_${npm_package_version}_standalone.js -t [ babelify --presets [ es2015 ] ]",
     "prepublish": "npm run compile"
   },
   "repository": {

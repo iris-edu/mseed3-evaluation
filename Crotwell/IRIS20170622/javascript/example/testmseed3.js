@@ -3,8 +3,8 @@
 var miniseed = seisplotjs_miniseed;
 // this comes from the seisplotjs waveformplot bundle
 var wp = seisplotjs_waveformplot
-// mseed3_iris0623 comes from mseed3 bundle
-var mseed3 = mseed3_iris0623
+// mseed3_iris0622 comes from mseed3 bundle
+var mseed3 = mseed3_iris0622
 
 
 var client = new XMLHttpRequest();
