@@ -139,7 +139,8 @@ export class DataHeader {
     else if (this.microsecond < 1000) { msString = "000"; }
     else if (this.microsecond < 10000) { msString = "00"; }
     else if (this.microsecond < 100000) { msString = "0"; }
-    return ''+this.year+this.dayOfYear+'T'+this.hour+this.minute+this.second+"."+msString+this.microsecond;
+    return ''+this.year
+      +padZeros(this.dayOfYear, 3)+'T'+padZeros(this.hour, 2)+padZeros(this.minute, 2)+padZeros(this.second, 2)+"."+padZeros(this.microsecond, 6);
   }
 
   timeOfSample(i) {
@@ -183,6 +184,14 @@ export class DataHeader {
     }
     return offset;
   }
+}
+
+export function padZeros(val, len) {
+  let out = ""+val;
+  while (out.length < len) {
+    out = "0"+out;
+  }
+  return out;
 }
 
 export class DataFooter {
@@ -376,11 +385,38 @@ export function convertMS2Record(ms2record) {
   if (ms2H.typeCode && ms2H.typeCode != 'D') {
     ms3Footer.extraHeaders.QI = ms2H.typeCode;
   }
+  let micros = 0;
   for (let i=0; i<ms2H.blocketteList.length; i++) {
     let blockette = ms2H.blocketteList[i];
 console.log("blockette "+i+" "+blockette.type);
-    if (blockette.type === 1001) {
+    if (blockette.type === 100) {
+      ms3Header.sampleRatePeriod = blockette.body.getFloat32(4);
+    } else if (blockette.type === 1001) {
+      micros = blockette.body.getInt8(6);
       ms3Footer.extraHeaders.TQ = blockette.body.getUint8(4);
+    }
+  }
+  ms3Header.microsecond += micros;
+  if (ms3Header.microsecond < 0) {
+    ms3Header.second -= 1;
+    ms3Header.microsecond += 1000000;
+    if (ms3Header.second < 0) {
+// might be wrong for leap seconds
+      ms3Header.second += 60;
+      ms3Header.minute -= 1;
+      if (ms3Header.minute < 0) {
+        ms3Header.minute += 60;
+        ms3Header.hour -= 1;
+        if (ms3Header.hour < 0) {
+          ms3Header.hour += 24;
+          ms3Header.dayOfYear =- 1;
+          if (ms3Header.dayOfYear < 0) {
+// wrong for leap years
+            ms3Header.dayOfYear += 365;
+            ms3Header.year -= 1;
+          }
+        }
+      }
     }
   }
   ms3Footer.extraHeadersLength = JSON.stringify(ms3Footer.extraHeaders).length;
