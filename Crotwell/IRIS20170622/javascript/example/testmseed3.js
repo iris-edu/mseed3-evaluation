@@ -94,9 +94,9 @@ var table = wp.d3.select("div.miniseed")
         .text(function(d) {
           var out = "";
           for(var b=0; b<d.header.blocketteList.length; b++) {
-            out += d.header.blocketteList[b].type+",";
+            out += ""+d.header.blocketteList[b].type+",";
           }
-          return out.sub;
+          return out;
         });
 
 console.log("before plot");
