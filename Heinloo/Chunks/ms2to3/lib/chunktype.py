@@ -31,12 +31,12 @@ class _Chunk(object):
 
         return cls(*struct.unpack(cls.__layout, data[:cls.__parsed_length]), **kwargs)
 
-def ChunkType(name, key, layout, parsed_length, *fields):
+def ChunkType(name, key, layout, *fields):
     hasdata = (len(fields) > 0 and fields[-1] == 'data')
     cls = type(name, (_Chunk, collections.namedtuple(name, fields)),
                      {'_Chunk__key': key,
                       '_Chunk__layout': layout,
-                      '_Chunk__parsed_length': parsed_length,
+                      '_Chunk__parsed_length': struct.calcsize(layout),
                       '_Chunk__hasdata': hasdata})
 
     _chunk_registry[key] = cls
