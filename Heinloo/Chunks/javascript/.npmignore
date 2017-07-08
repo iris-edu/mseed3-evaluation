@@ -1,0 +1,5 @@
+src/
+.git
+.DS_Store
+*_standalone.js
+example/**/*_standalone.js
