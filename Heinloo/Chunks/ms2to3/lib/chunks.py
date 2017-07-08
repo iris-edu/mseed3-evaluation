@@ -16,6 +16,10 @@ ABS_TIME = ChunkType("ABS_TIME", 2, "<HHBBBLB",
     "microsecond",
     "flags")
 
+DATA_VERSION = ChunkType("DATA_VERSION", 90, "<B",
+    "value"
+)
+
 TIMING_QUALITY = ChunkType("TIMING_QUALITY", 100, "<B",
     "value_percent")
 
@@ -23,6 +27,10 @@ LEGACY_FLAGS = ChunkType("LEGACY_FLAGS", 101, "<BBB",
     "activity_flags",
     "io_clock_flags",
     "data_quality_flags")
+
+QUALITY_INDICATOR = ChunkType("QUALITY_INDICATOR", 102, "<1s",
+    "value"
+)
 
 SENSOR = ChunkType("SENSOR", 10, "<HHHB",
     "vendor_id",
@@ -36,9 +44,15 @@ DATALOGGER = ChunkType("DATALOGGER", 11, "<HHHB",
     "serial_no",
     "preset")
 
-WFDATA = ChunkType("WFDATA", 20, "<fBH",
-    "sample_rate",
-    "encoding",
+WFMETA = ChunkType("WFMETA", 20, "<fB",
+    "sample_rate_period",
+    "encoding")
+
+WFDATA = ChunkType("WFDATA", 21, "<B",
+    "number_of_samples",
+    "data")
+
+WFDATA_LARGE = ChunkType("WFDATA_LARGE", 22, "<L",
     "number_of_samples",
     "data")
 
