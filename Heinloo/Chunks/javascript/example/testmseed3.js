@@ -107,27 +107,23 @@ console.log("after plot");
 
   var mseed3Records = mseed3.convertMS2toMS3(records);
 console.log("parse to mseed3 "+mseed3Records.length);
-// doesn't work...
-/*
-var totLength = 0;
-for( let i=0; i<mseed3Records.length; i++) {
-  console.log(" "+i+" "+mseed3Records[i].header.identifier);
-  totLength += mseed3Records[i].getSize();
-}
-  var buff = new ArrayBuffer(totLength);
-  var offset = 0;
-  for( let i=0; i<mseed3Records.length; i++) {
-    var dataView = new DataView(buff, offset, mseed3Records[i].getSize());
-    mseed3Records[i].save(dataView);
-    offset += mseed3Records[i].getSize();
+  var blobs = []
+
+  for (let i in mseed3Records) {
+    blobs.push(mseed3Records[i].blob())
   }
+
+  var file = new File(blobs, "data.mseed3", {type: "application/vnd.fdsn.mseed3"})
+  var url = URL.createObjectURL(file)
   var download = wp.d3.select("div.mseed3").select("a");
+
   if (download.empty()) {
     download = wp.d3.select("div.mseed3").append("a");
   }
-   
-  download.attr('href', window.URL.createObjectURL(buff)).attr('download', 'data.mseed3');
-*/
+ 
+  download.attr('href', url);
+  download.text("Download MSEED3 file");
+
   var table = wp.d3.select("div.mseed3")
         .select("table");
       if ( table.empty()) {
