@@ -9,6 +9,7 @@ if sys.version_info < (3, 0):
 import io
 import binascii
 from lib.chunks import *
+from lib.varint import encode_varint
 from lib.mseed2 import MS2Record, EndOfData
 
 MS2BLK = {
@@ -28,7 +29,7 @@ MS2BLK = {
 class MS3Writer(object):
     def __init__(self, stream):
         self.__stream = stream
-        self.__data = b"MS30"
+        self.__data = bytes()
 
     def add_chunk(self, chunk):
         self.__data += chunk._encode()
@@ -41,12 +42,10 @@ class MS3Writer(object):
         )
         self.__data += chunk._encode()
 
-        # add NULL chunk to mark the end of record
-        self.__data += b'\0\0'
-        self.__stream.write(self.__data)
+        self.__stream.write(b"MS3" + encode_varint(len(self.__data)) + self.__data)
 
         # next record starts here
-        self.__data = b"MS30"
+        self.__data = bytes()
 
 def process_ms2_record(rec):
     if rec.loc:

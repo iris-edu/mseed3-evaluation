@@ -1,4 +1,4 @@
-from lib.chunktype import ChunkType
+from lib.chunktypepb import ChunkType
 
 # ChunkType(name, key, layout, *fields)
 
