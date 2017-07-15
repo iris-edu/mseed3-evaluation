@@ -59,7 +59,8 @@ class _Chunk(object):
                 raise InvalidChunk("chunk " + self.__key + " field " + n + " has invalid wire type " + wt)
 
         except KeyError:
-            pass
+            # TODO: skip field
+            raise
 
         return self.__field_decoders[n](data, pos, len(data), None, self.__dict__)
 

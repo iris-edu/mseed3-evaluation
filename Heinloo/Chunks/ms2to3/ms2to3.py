@@ -8,23 +8,16 @@ if sys.version_info < (3, 0):
 
 import io
 import binascii
-from lib.chunks import *
+
+if sys.argv[0] == "ms2to3-protobuf.py":
+    from lib.chunkspb import *
+    file_extension = "ms3pb"
+else:
+    from lib.chunks import *
+    file_extension = "ms3"
+
 from lib.varint import encode_varint
 from lib.mseed2 import MS2Record, EndOfData
-
-MS2BLK = {
-    100: MS2BLK100,
-    200: MS2BLK200,
-    201: MS2BLK201,
-    300: MS2BLK300,
-    310: MS2BLK310,
-    320: MS2BLK320,
-    390: MS2BLK390,
-    395: MS2BLK395,
-    400: MS2BLK400,
-    405: MS2BLK405,
-    500: MS2BLK500
-}
 
 class MS3Writer(object):
     def __init__(self, stream):
@@ -84,27 +77,19 @@ def process_ms2_record(rec):
         )
         writer.add_chunk(chunk)
 
-    chunk = LEGACY_FLAGS(
-        activity_flags = rec.aflags,
-        io_clock_flags = rec.cflags,
-        data_quality_flags = rec.qflags
-    )
-    writer.add_chunk(chunk)
+    if rec.rectype != b'D':
+        chunk = QUALITY_INDICATOR(
+            value = rec.rectype
+        )
+        writer.add_chunk(chunk)
 
-    for bnum, bdata in rec.blockettes:
-        try:
-            chunk = MS2BLK[bnum](
-                data=bdata
-            )
-            writer.add_chunk(chunk)
-
-        except KeyError:
-            pass
+    channel = "ZNE".find(id_string[-1])
 
     chunk = SENSOR(
         vendor_id = 0x1111,
         product_id = 0x2222,
         serial_no = 0x3333,
+        channel = channel,
         preset = 0x44
     )
     writer.add_chunk(chunk)
@@ -113,14 +98,19 @@ def process_ms2_record(rec):
         vendor_id = 0x5555,
         product_id = 0x6666,
         serial_no = 0x7777,
+        channel = channel,
         preset = 0x88
     )
     writer.add_chunk(chunk)
 
     if rec.data:
-        chunk = WFDATA(
-            sample_rate = rec.sample_rate,
-            encoding = rec.encoding,
+        chunk = WFMETA(
+            sample_rate_period = rec.sample_rate,
+            encoding = rec.encoding
+	)
+        writer.add_chunk(chunk)
+
+        chunk = (WFDATA if rec.nsamp <= 255 else WFDATA_LARGE)(
             number_of_samples = rec.nsamp,
             data = rec.data
         )
@@ -131,12 +121,11 @@ def process_ms2_record(rec):
 
 
 if len(sys.argv) != 2:
-    print(sys.argv)
-    print("Usage: ms2to3 file")
+    print("Usage: %s file" % sys.argv[0])
     sys.exit(1)
 
 fd_in = open(sys.argv[1], "rb")
-fd_out = open(sys.argv[1] + ".ms3", "wb")
+fd_out = open(sys.argv[1] + "." + file_extension, "wb")
 writer = MS3Writer(fd_out)
 
 while True:

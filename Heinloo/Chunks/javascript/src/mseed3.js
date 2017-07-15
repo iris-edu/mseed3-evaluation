@@ -10,12 +10,11 @@
 import * as seedcodec from 'seisplotjs-seedcodec'
 import * as model from 'seisplotjs-model'
 import * as crc32 from 'crc-32'
+import * as varint from 'varint'
 import * as fdsn from './chunks-fdsn'
 import * as chunktype from './chunktype'
 
-export const MAGIC = 'MS30'
-export const FDSN_PREFIX = 'FDSN'
-export const UNKNOWN_DATA_VERSION = 255;
+export const MAGIC = 'MS3'
 
 /** parse arrayBuffer into an array of DataRecords. */
 export function parseDataRecords(arrayBuffer) {
@@ -35,7 +34,7 @@ export class DataRecord {
 	constructor(bytearray) {
 		this.recordIndicator = 'MS';
 		this.formatVersion = 30;
-		this.size = MAGIC.length
+		this.size = 0
 		this.dataLength = 0
 		this.identifierLength = 0
 		this.numSamples = 0
@@ -61,14 +60,13 @@ export class DataRecord {
 		}
 
 		var offset = MAGIC.length
+		var size = varint.decode(data, offset)
+		offset += varint.decode.bytes
 
-		while(true) {
+		while(offset < size) {
 			let chunk = chunktype.decode(bytearray, offset)
 			offset += chunktype.decode.bytes
 			this.addChunk(chunk)
-
-			if (chunk._type == fdsn.NULL_CHUNK)
-				break
 		}
 	}
 
@@ -111,7 +109,12 @@ export class DataRecord {
 	}
 
 	getSize() {
-		return this.size
+		var headerSize = MAGIC.length + 1
+
+		for (let i=this.size; i>127; i>>=7)
+			headerSize += 1
+
+		return headerSize + this.size + 6  // incl. CRC
 	}
 
 	decompress() {
@@ -144,6 +147,10 @@ export class DataRecord {
 			bytearray[offset++] = MAGIC.charCodeAt(i)
 		}
 
+		var sizeBytes = varint.encode(this.size)
+		bytearray.set(sizeBytes, offset)
+		offset += sizeBytes.length
+
 		for (let i in this.chunks) {
 			let data = this.chunks[i]._encode()
 			bytearray.set(data, offset)
@@ -161,10 +168,6 @@ export class DataRecord {
 		bytearray.set(data, offset)
 		offset += data.length
 
-		// add NULL chunk to mark the end of record
-		bytearray[offset++] = 0
-		bytearray[offset++] = 0
-
 		return offset
 	}
 
@@ -175,7 +178,8 @@ export class DataRecord {
 			magicData[i] = MAGIC.charCodeAt(i)
 		}
 
-		var data = [magicData]
+		var sizeBytes = Uint8Array.from(varint.encode(this.size + 6))  // incl. CRC
+		var data = [magicData, sizeBytes]
 
 		for (let i in this.chunks) {
 			data.push(this.chunks[i]._encode())
@@ -192,9 +196,6 @@ export class DataRecord {
 		})
 
 		data.push(chunk._encode())
-
-		// add NULL chunk to mark the end of record
-		data.push(new Uint8Array(2))
 
 		return new Blob(data)
 	}
@@ -244,7 +245,7 @@ export function convertMS2Record(ms2record) {
 	var ms3R = new DataRecord()
 	var ms2H = ms2record.header
 
-	var idString = FDSN_PREFIX + ':' +ms2H.netCode + '.' + ms2H.staCode + '.' + ( ms2H.locCode ? (ms2H.locCode+':') : "" ) + ms2H.chanCode
+	var idString = ms2H.netCode + '.' + ms2H.staCode + '.' + ( ms2H.locCode ? (ms2H.locCode+':') : "" ) + ms2H.chanCode
 	var idData = new Uint8Array(idString.length)
 
 	for (let i=0; i<idString.length; i++) {
@@ -303,10 +304,10 @@ export function convertMS2Record(ms2record) {
 
 	var flags = 0
 
-	if (ms2H.ioClockFlags & (1<<7))
+	if (ms2H.dataQualityFlags & (1<<7))
 		flags |= 0x01
 
-	if (ms2H.dataQualityFlags & (1<<5))
+	if (ms2H.ioClockFlags & (1<<5))
 		flags |= 0x02
 
 	chunk = fdsn.ABS_TIME({
@@ -327,23 +328,21 @@ export function convertMS2Record(ms2record) {
 		ms3R.addChunk(chunk)
 	}
 
-	if (ms2H.typeCode && ms2H.typeCode != 'D') {
+	if (ms2H.typeCode && ms2H.typeCode != 68) {
 		chunk = fdsn.QUALITY_INDICATOR({
 			value: String.fromCharCode(ms2H.typeCode)
 		})
 		ms3R.addChunk(chunk)
 	}
 
-	chunk = fdsn.DATA_VERSION({
-		value: UNKNOWN_DATA_VERSION,
-	})
-	ms3R.addChunk(chunk)
+	var channel = "ZNE".indexOf(idString.slice(-1))
 
 	chunk = fdsn.SENSOR({
 		vendor_id: 0x1111,
 		product_id: 0x2222,
 		serial_no: 0x3333,
-		preset: 0x4444,
+		channel: channel,
+		preset: 0x44,
 	})
 	ms3R.addChunk(chunk)
 
@@ -351,7 +350,8 @@ export function convertMS2Record(ms2record) {
 		vendor_id: 0x5555,
 		product_id: 0x6666,
 		serial_no: 0x7777,
-		preset: 0x8888,
+		channel: channel,
+		preset: 0x88,
 	})
 	ms3R.addChunk(chunk)
 

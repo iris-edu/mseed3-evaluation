@@ -32,16 +32,18 @@ export var QUALITY_INDICATOR = ChunkType("QUALITY_INDICATOR", 102, "<1s",
     "value"
 )
 
-export var SENSOR = ChunkType("SENSOR", 10, "<HHHB",
+export var SENSOR = ChunkType("SENSOR", 10, "<HHHBB",
     "vendor_id",
     "product_id",
     "serial_no",
+    "channel",
     "preset")
 
-export var DATALOGGER = ChunkType("DATALOGGER", 11, "<HHHB",
+export var DATALOGGER = ChunkType("DATALOGGER", 11, "<HHHBB",
     "vendor_id",
     "product_id",
     "serial_no",
+    "channel",
     "preset")
 
 export var WFMETA = ChunkType("WFMETA", 20, "<fB",

@@ -16,11 +16,8 @@ export function UnsupportedChunk(message) {
 UnsupportedChunk.prototype = new Error
 
 export function ChunkType(name, key, layout) {
-	var name = name
-	var key = key
-	var layout = layout
-	var parsedLength = struct.sizeOf(layout)
 	var fields = Array.prototype.slice.call(arguments, 3)
+	var parsedLength = struct.sizeOf(layout)
 	var hasdata = false
 
 	if (fields.length > 0 && fields[fields.length-1] == 'data') {
@@ -113,13 +110,13 @@ export function decode(data, offset) {
 	bytes += varint.decode.bytes
 
 	if (length > 1024*1024) {
-		throw InvalidChunk("key=" + key + ", length=", length)
+		throw new InvalidChunk("key=" + key + ", length=", length)
 	}
 
 	decode.bytes = bytes + length
 
 	if (!(key in decoder)) {
-		throw UnsupportedChunk("key=" + key + ", length=", length)
+		throw new UnsupportedChunk("key=" + key + ", length=", length)
 	}
 
 	return decoder[key](data, offset + bytes)

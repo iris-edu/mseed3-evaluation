@@ -7,8 +7,8 @@ if sys.version_info < (3, 0):
     sys.exit(1)
 
 from lib.varint import decode_varint
-from lib.chunktype import decode_chunk, UnsupportedChunk
-from lib.chunks import *
+from lib.chunktypepb import decode_chunk, UnsupportedChunk
+from lib.chunkspb import *
 
 
 if len(sys.argv) != 2:
@@ -28,18 +28,22 @@ while True:
         sys.exit(1)
 
     data_length = decode_varint(fd)
-    pos = fd.tell()
+    data = fd.read(data_length)
+    pos = 0
 
-    while fd.tell() < pos + data_length:
+    while pos < data_length:
         try:
             # Essential chunks (ID, TIME) should be near the beginning of
             # record. Knowing the record length enables us to jump to next
             # record without parsing all chunks.
 
-            chunk = decode_chunk(fd)
+            chunk, pos = decode_chunk(data, pos)
 
             print(chunk)
 
         except UnsupportedChunk as e:
             print("unsupported chunk:", e)
+
+            # TODO: skip chunk
+            sys.exit(1)
 

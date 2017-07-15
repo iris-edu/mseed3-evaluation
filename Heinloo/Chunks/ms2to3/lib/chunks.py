@@ -1,4 +1,7 @@
-from lib.chunktypepb import ChunkType
+if __name__ == "lib.chunkspb":
+    from lib.chunktypepb import ChunkType
+else:
+    from lib.chunktype import ChunkType
 
 # ChunkType(name, key, layout, *fields)
 
@@ -32,16 +35,18 @@ QUALITY_INDICATOR = ChunkType("QUALITY_INDICATOR", 102, "<1s",
     "value"
 )
 
-SENSOR = ChunkType("SENSOR", 10, "<HHHB",
+SENSOR = ChunkType("SENSOR", 10, "<HHHBB",
     "vendor_id",
     "product_id",
     "serial_no",
+    "channel",
     "preset")
 
-DATALOGGER = ChunkType("DATALOGGER", 11, "<HHHB",
+DATALOGGER = ChunkType("DATALOGGER", 11, "<HHHBB",
     "vendor_id",
     "product_id",
     "serial_no",
+    "channel",
     "preset")
 
 WFMETA = ChunkType("WFMETA", 20, "<fB",
