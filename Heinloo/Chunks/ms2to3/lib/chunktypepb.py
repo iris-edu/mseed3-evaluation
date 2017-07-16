@@ -56,7 +56,7 @@ class _Chunk(object):
     def __decode_single_field(self, data, pos, wt, n):
         try:
             if self.__field_types[n] != wt:
-                raise InvalidChunk("chunk " + self.__key + " field " + n + " has invalid wire type " + wt)
+                raise InvalidChunk("chunk %s field %d has invalid wire type %d" % (self.__key, n, wt))
 
         except KeyError:
             # TODO: skip field

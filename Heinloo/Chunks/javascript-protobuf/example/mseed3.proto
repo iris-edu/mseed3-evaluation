@@ -1,0 +1,64 @@
+package mseed3;
+
+// Note: all integers are varints; uint8 and uint16 do not exist in protobuf.
+
+message RecordStartTime {
+	required uint32 year = 1;
+	required uint32 day_of_year = 2;
+	required uint32 hour = 3;
+	required uint32 minute = 4;
+	required uint32 second = 5;
+	required uint32 microsecond = 6;
+	required uint32 flags = 7;
+}
+
+message Sensor {
+	required uint32 vendor_id = 1;
+	required uint32 product_id = 2;
+	required uint32 serial_no = 3;
+	required uint32 channel = 4;
+	required uint32 preset = 5;
+}
+
+message Datalogger {
+	required uint32 vendor_id = 1;
+	required uint32 product_id = 2;
+	required uint32 serial_no = 3;
+	required uint32 channel = 4;
+	required uint32 preset = 5;
+}
+
+message WaveformMetadata {
+	required double sample_rate_period = 1;
+	required uint32 encoding = 2;
+}
+
+message WaveformData {
+	required uint32 number_of_samples = 1;
+	required bytes data = 2;
+}
+
+message LargeWaveformData {
+	required uint32 number_of_samples = 1;
+	required bytes data = 2;
+}
+
+message Record {
+	required string time_series_identifier = 1;
+	required RecordStartTime record_start_time = 2;
+	optional Sensor sensor = 10;
+	optional Datalogger datalogger = 11;
+	optional WaveformMetadata waveform_metadata = 20;
+	repeated WaveformData waveform_data = 21;
+	repeated LargeWaveformData large_waveform_data = 22;
+	repeated uint32 crc32 = 30;
+	optional uint32 data_version = 90;
+	optional string quality_indicator = 91;
+	optional uint32 timing_quality = 100;
+}
+
+// This is a helper to create CRC32 that is appended to the record.
+message CRC32 {
+	required uint32 crc32 = 30;
+}
+
