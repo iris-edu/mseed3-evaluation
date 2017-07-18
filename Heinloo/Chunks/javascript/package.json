@@ -1,5 +1,5 @@
 {
-  "name": "mseed3-iris0622",
+  "name": "mseed3-chunks",
   "version": "0.0.1",
   "description": "Javascript library for parsing new miniseed3 proposed format.",
   "main": "./lib/mseed3.js",
@@ -14,23 +14,23 @@
     "lint": "eslint 'src/*.js'",
     "test": "qunit -c ./lib/mseed3.js -t ./test/index.js",
     "compile": "babel --presets es2015 -d lib/ src/",
-    "standalone": "browserify src/mseed3.js --standalone mseed3_iris0622 -o mseed3_${npm_package_version}_standalone.js -t [ babelify --presets [ es2015 ] ]",
+    "standalone": "browserify src/mseed3.js --standalone mseed3_chunks -o mseed3_${npm_package_version}_standalone.js -t [ babelify --presets [ es2015 ] ]",
     "prepublish": "npm run compile"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/iris-edu/miniseed-evaluation.git"
+    "url": "https://github.com/iris-edu/mseed3-evaluation.git"
   },
   "keywords": [
     "seismology",
     "miniseed"
   ],
-  "author": "Philip Crotwell <crotwell@seis.sc.edu>",
+  "author": "Andres Heinloo <andres@gfz-potsdam.de>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/iris-edu/miniseed-evaluation/issues"
+    "url": "https://github.com/iris-edu/mseed3-evaluation/issues"
   },
-  "homepage": "https://github.com/iris-edu/miniseed-evaluation",
+  "homepage": "https://github.com/iris-edu/mseed3-evaluation",
   "devDependencies": {
     "babel-cli": "^6.14.0",
     "babel-preset-es2015": "^6.14.0",

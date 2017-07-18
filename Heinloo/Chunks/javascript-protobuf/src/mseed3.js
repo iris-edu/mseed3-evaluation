@@ -1,10 +1,12 @@
 /*global DataView*/
 /**
+ * Andres Heinloo, GFZ Potsdam
+ *
+ * Originally based on code by:
+ *
  * Philip Crotwell
  * University of South Carolina, 2017
  * http://www.seis.sc.edu
- *
- * Modified by Andres H.
  */
 
 import * as seedcodec from 'seisplotjs-seedcodec'
