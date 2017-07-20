@@ -40,6 +40,7 @@ var table = wp.d3.select("div.miniseed")
           .append("table");
         var th = table.append("thead").append("tr");
         th.append("th").text("Seq");
+        th.append("th").text("TypeCode");
         th.append("th").text("Net");
         th.append("th").text("Sta");
         th.append("th").text("Loc");
@@ -48,6 +49,10 @@ var table = wp.d3.select("div.miniseed")
         th.append("th").text("End");
         th.append("th").text("NumSamp");
         th.append("th").text("Sps");
+        th.append("th").text("ActFlag");
+        th.append("th").text("IOFlag");
+        th.append("th").text("DQFlag");
+        th.append("th").text("TimeCorr");
         th.append("th").text("Blockettes");
         table.append("tbody");
       }
@@ -59,6 +64,10 @@ var table = wp.d3.select("div.miniseed")
       tr.append("td")
         .text(function(d) {
           return d.header.seq;
+        });
+      tr.append("td")
+        .text(function(d) {
+          return d.header.typeCode;
         });
       tr.append("td")
         .text(function(d) {
@@ -91,6 +100,22 @@ var table = wp.d3.select("div.miniseed")
       tr.append("td")
         .text(function(d) {
           return d.header.sampleRate;
+        });
+      tr.append("td")
+        .text(function(d) {
+          return d.header.activityFlags;
+        });
+      tr.append("td")
+        .text(function(d) {
+          return d.header.ioClockFlags;
+        });
+      tr.append("td")
+        .text(function(d) {
+          return d.header.dataQualityFlags;
+        });
+      tr.append("td")
+        .text(function(d) {
+          return d.header.timeCorrection;
         });
       tr.append("td")
         .text(function(d) {
