@@ -31,7 +31,7 @@ console.log("resolve miniseed: ");
 }
 
 var resolve = function(arraybuf) {
-  var records = miniseed.parseDataRecords(arraybuf);
+  var ms2Records = miniseed.parseDataRecords(arraybuf);
 
 var table = wp.d3.select("div.miniseed")
         .select("table");
@@ -58,7 +58,7 @@ var table = wp.d3.select("div.miniseed")
       }
       var tableData = table.select("tbody")
         .selectAll("tr")
-        .data(records, function(d) { return d.codes()+d.header.start;});
+        .data(ms2Records, function(d) { return d.codes()+d.header.start;});
       tableData.exit().remove();
       var tr = tableData.enter().append('tr');
       tr.append("td")
@@ -127,13 +127,35 @@ var table = wp.d3.select("div.miniseed")
         });
 
 console.log("before plot");
-      plotSeis(records);
+      plotSeis(ms2Records);
 console.log("after plot");
 
 // mseed3 conversion...
 
-  var mseed3Records = mseed3.convertMS2toMS3(records);
-console.log("parse to mseed3 "+mseed3Records.length);
+  var mseed3Records = mseed3.convertMS2toMS3(ms2Records);
+
+  var totSize = mseed3Records.reduce(function(accum, record) {
+    return accum + record.getSize();
+  }, 0);
+  var roundTripBuffer = new ArrayBuffer(totSize);
+  let offset = 0;
+  mseed3Records.forEach(function(record) {
+    let saveDV = new DataView(roundTripBuffer, offset);
+    let recordlen = record.save(saveDV);
+    offset += recordlen;
+  });
+
+  offset = 0;
+  rtRecords = [];
+  while(offset < roundTripBuffer.byteLength) {
+    let readDV = new DataView(roundTripBuffer, offset);
+    let dr = new mseed3.DataRecord(readDV);
+    rtRecords.push(dr);
+    offset += dr.getSize();
+  }
+
+
+console.log("parse mseed2 to mseed3 to ArrayBuffer to mseed3: inMS2 "+ms2Records.length+" out MS3: "+rtRecords.length);
 // doesn't work...
 /*
 var totLength = 0;
@@ -179,7 +201,7 @@ for( let i=0; i<mseed3Records.length; i++) {
       }
       var tableData = table.select("tbody")
         .selectAll("tr")
-        .data(mseed3Records, function(d) { return d.codes()+d.header.start;});
+        .data(rtRecords, function(d) { return d.codes()+d.header.start;});
       tableData.exit().remove();
       var tr = tableData.enter().append('tr');
       tr.append("td")
@@ -254,7 +276,6 @@ var plotSeis = function (dataRecords) {
           for (var i = 0; i < keys.length; i++) {
             var key = keys[i];
             var segments = miniseed.merge(byChannel[key]);
-console.log("merge in:"+byChannel[key].length+" out:"+segments.length);
             div.append('p').html('Plot for ' + key);
 div.append('div').attr("class", "seis").selectAll('p').data(segments).enter().append('p').text(function(d) { return d.start().toISOString()+" to "+d.end().toISOString()+" nums:"+d.numPoints()+" "+d.sampleRate();});
             var svgdiv = div.append('div').attr('class', 'myseisplot');
@@ -268,7 +289,6 @@ var markers = [];
 markers.push({ markertype: 'pick', name: 'P', time: new Date(Date.parse('2017-03-01T20:19:05.250Z'))});
 //markers.push({ markertype: 'pick', name: 'S', time: new Date(Date.parse('2017-02-27T22:59:20Z'))});
 //seismogram.appendMarkers(markers);
-console.log("P marker "+markers[0].time.toISOString());
 console.log("xScale domain "+seismogram.xScale.domain()[0].toISOString()+" to "+seismogram.xScale.domain()[1].toISOString());
             }
         }

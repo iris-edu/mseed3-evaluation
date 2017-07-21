@@ -8,12 +8,14 @@
 import * as seedcodec from 'seisplotjs-seedcodec';
 import * as model from 'seisplotjs-model';
 //import * as CBOR from 'cbor.js';
+import * as CRC from 'crc-32';
 
 /* re-export */
 export { seedcodec, model };
 
 export const UNKNOWN_DATA_VERSION = 0;
-export const FIXED_HEADER_SIZE=36;
+export const CRC_OFFSET = 29;
+export const FIXED_HEADER_SIZE=38;
 export const FDSN_PREFIX = 'FDSN';
 
 /** parse arrayBuffer into an array of DataRecords. */
@@ -41,7 +43,7 @@ export class DataRecord {
     this.header = new DataHeader(dataView);
     let extraDataView = new DataView(dataView.buffer,
                              dataView.byteOffset+this.header.getSize(),
-                             this.header.extraHeaderLength);
+                             this.header.extraHeadersLength);
     this.extraHeaders = parseExtraHeaders(extraDataView);
     this.data = new DataView(dataView.buffer, 
                              dataView.byteOffset+this.header.getSize(),
@@ -50,7 +52,7 @@ export class DataRecord {
     this.length = this.header.numSamples;
     }
   getSize() {
-    return this.header.getSize()+this.header.extraHeaderLength+this.header.dataLength;
+    return this.header.getSize()+this.header.extraHeadersLength+this.header.dataLength;
   }
   decompress() {
     // only decompress once as it is expensive operation
@@ -67,7 +69,7 @@ export class DataRecord {
   }
   save(dataView) {
     let json = JSON.stringify(this.extraHeaders);
-    this.header.extraHeaderLength = json.length;
+    this.header.extraHeadersLength = json.length;
     let offset = this.header.save(dataView);
 
     for (let i=0; i<json.length; i++) {
@@ -79,6 +81,10 @@ export class DataRecord {
       dataView.setUint8(offset+i, this.data.getInt8(i));
     }
     offset += this.data.byteLength;
+// CRC not yet working
+    let crc = CRC.buf(new Uint8Array(dataView.buffer, dataView.offset, dataView.offset+offset));
+console.log("CRC: "+crc);
+    dataView.setUint32(CRC_OFFSET, crc, true);
     return offset;
   }
 }
@@ -124,20 +130,20 @@ export class DataHeader {
     this.minute = dataView.getUint8(9);
     this.second = dataView.getUint8(10);
     this.nanosecond = dataView.getInt32(11, headerLittleEndian);
-    this.sampRatePeriod = dataView.getFloat64(15, headerLittleEndian);
-    if (this.sampRatePeriod < 0) {
-      this.sampleRate = 1 / this.sampRatePeriod;
+    this.sampleRatePeriod = dataView.getFloat64(15, headerLittleEndian);
+    if (this.sampleRatePeriod < 0) {
+      this.sampleRate = 1 / this.sampleRatePeriod;
     } else {
-      this.sampleRate = this.sampRatePeriod;
+      this.sampleRate = this.sampleRatePeriod;
     }
     this.encoding = dataView.getUint8(23);
     this.publicationVersion = dataView.getUint8(24);
-    this.numSamples = dataView.getUint32(25);
-    this.crc = dataView.getUint32(29);
+    this.numSamples = dataView.getUint32(25, headerLittleEndian);
+    this.crc = dataView.getUint32(29, headerLittleEndian);
     this.identifierLength = dataView.getUint8(33);
-    this.extraHeadersLength = dataView.getUint16(34);
-    this.dataLength = dataView.getUint16(36);
-    this.identifier = makeString(dataView, 36, this.identifierLength);
+    this.extraHeadersLength = dataView.getUint16(34, headerLittleEndian);
+    this.dataLength = dataView.getUint16(36, headerLittleEndian);
+    this.identifier = makeString(dataView, 38, this.identifierLength);
 
 
     this.start = new Date(Date.UTC(this.year, 0, this.dayOfYear, this.hour, this.minute, this.second, Math.round(this.nanosecond / 1000000)));
@@ -158,7 +164,7 @@ export class DataHeader {
   timeOfSample(i) {
     return new Date(this.start.getTime() + 1000*i/this.sampleRate);
   }
-  save(dataView, offset) {
+  save(dataView, offset=0) {
     dataView.setInt8(offset, this.recordIndicator.charCodeAt(0));
     offset++;
     dataView.setInt8(offset, this.recordIndicator.charCodeAt(1));
@@ -167,9 +173,9 @@ export class DataHeader {
     offset++;
     dataView.setInt8(offset, this.flags);
     offset++;
-    dataView.setUint16(offset, this.year);
+    dataView.setUint16(offset, this.year, true);
     offset+=2;
-    dataView.setUint16(offset, this.dayOfYear);
+    dataView.setUint16(offset, this.dayOfYear, true);
     offset+=2;
     dataView.setInt8(offset, this.hour);
     offset++;
@@ -177,23 +183,23 @@ export class DataHeader {
     offset++;
     dataView.setInt8(offset, this.second);
     offset++;
-    dataView.setUint32(offset, this.nanosecond);
+    dataView.setUint32(offset, this.nanosecond, true);
     offset+=4;
-    dataView.setFloat64(offset, this.sampRatePeriod);
+    dataView.setFloat64(offset, this.sampleRatePeriod, true);
     offset+=8;
     dataView.setInt8(offset, this.encoding);
     offset++;
     dataView.setInt8(offset, this.publicationVersion);
     offset++;
-    dataView.setUint32(offset, this.numSamples);
+    dataView.setUint32(offset, this.numSamples, true);
     offset += 4;
-    dataView.setUint32(offset, this.crc);
+    dataView.setUint32(offset, this.crc, true);
     offset += 4;
     dataView.setInt8(offset, this.identifier.length);
     offset++;
-    dataView.setUint16(offset, this.extraHeaderLength);
+    dataView.setUint16(offset, this.extraHeadersLength, true);
     offset += 2;
-    dataView.setUint16(offset, this.dataLength);
+    dataView.setUint16(offset, this.dataLength, true);
     offset+=2;
     for (let i=0; i<this.identifier.length; i++) {
 // not ok for unicode?
@@ -207,13 +213,15 @@ export class DataHeader {
 
 export function parseExtraHeaders(dataView) {
   let firstChar = dataView.getUint8(0);
-  if (String.fromCharCode(firstChar) === '}') {
-    // looks like json
-    return JSON.parse(makeString(dataView, 0, this.extraHeadersLength));
+  if (firstChar == 123) {
+    // looks like json, '{' is ascii 123 
+    return JSON.parse(makeString(dataView, 0, dataView.byteLength));
   } else if (firstChar & (7 << 5) === ( 5 << 5 )) {
-    // looks like cbor
+    // looks like cbor, first 3 bits are binary 5, ie 101
 //    return CBOR.decode(dataView.buffer.slice(dataView.offset, dataView.offset+this.extraHeaders.length));
     throw new Error("cbor not yet impl");
+  } else {
+    throw new Error("do not understand extras with first char val: "+firstChar+" "+(firstChar===123));
   }
 }
 
@@ -367,7 +375,7 @@ export function convertMS2Record(ms2record) {
   ms3Header.second = ms2H.startBTime.sec;
   ms3Header.nanosecond = ms2H.startBTime.tenthMilli*100000;
 // maybe can do better from factor and multiplier?
-  ms3Header.sampleRatePeriod = ms2H.sampleRate > 1 ? ms2H.sampleRate : (1.0 / ms2H.sampleRate);  
+  ms3Header.sampleRatePeriod = ms2H.sampleRate >= 1 ? ms2H.sampleRate : (-1.0 / ms2H.sampleRate);  
   ms3Header.encoding = ms2record.header.encoding;
   ms3Header.publicationVersion = UNKNOWN_DATA_VERSION;
   ms3Header.dataLength = ms2record.data.byteLength;
@@ -416,6 +424,7 @@ export function convertMS2Record(ms2record) {
   let out = new DataRecord();
   out.header = ms3Header;
   out.extraHeaders = ms3Extras;
+  // need to convert if not steim1 or 2
   out.data = ms2record.data;
   return out;
 }
