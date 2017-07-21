@@ -8,14 +8,7 @@ if sys.version_info < (3, 0):
 
 import io
 import binascii
-
-if sys.argv[0] == "ms2to3-protobuf.py":
-    from lib.chunkspb import *
-    file_extension = "ms3pb"
-else:
-    from lib.chunks import *
-    file_extension = "ms3"
-
+from lib.chunks import *
 from lib.varint import encode_varint
 from lib.mseed2 import MS2Record, EndOfData
 
@@ -125,7 +118,7 @@ if len(sys.argv) != 2:
     sys.exit(1)
 
 fd_in = open(sys.argv[1], "rb")
-fd_out = open(sys.argv[1] + "." + file_extension, "wb")
+fd_out = open(sys.argv[1] + ".ms3", "wb")
 writer = MS3Writer(fd_out)
 
 while True:
